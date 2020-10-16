@@ -8,7 +8,7 @@ char symbol(int number)
     }
     else
     {
-        return '0' + number + 7 + 'a' - 'A';
+        return 'a' - 10 + number;
     }
 }
 
