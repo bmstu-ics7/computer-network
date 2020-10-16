@@ -1,0 +1,7 @@
+## c build files
+
+*.o
+*.out
+
+## MacOS Files
+.DS_Store
