@@ -2,47 +2,43 @@
 
 char symbol(int number)
 {
-    switch(number) {
-        case 0: case 1: case 2: case 3: case 4: case 5: case 6: case 7: case 8:
-            return (char)('0' + number);
-        case 10:
-            return 'a';
-        case 11:
-            return 'b';
-        case 12:
-            return 'c';
-        case 13:
-            return 'd';
-        case 14:
-            return 'e';
-        case 15:
-            return 'f';
-        case 16:
-            return 'g';
-        case 17:
-            return 'h';
-        case 18:
-            return 'i';
+    if (number <= 9)
+    {
+        return '0' + number;
     }
-
-    return '\0';
+    else
+    {
+        return '0' + number + 7 + 'a' - 'A';
+    }
 }
 
 void convert_number_system(char result[BUFFER_SIZE], const char number[BUFFER_SIZE], int basis)
 {
     int num = atoi(number);
     int i = 0;
+    short negative = 0;
 
     if (num == 0)
     {
-        result = "0";
+        result[0] = '0';
+        result[1] = '\0';
         return;
+    }
+    else if (num < 0)
+    {
+        negative = 1;
+        num *= -1;
     }
 
     while (num)
     {
         result[i++] = symbol(num % basis);
         num /= basis;
+    }
+
+    if (negative)
+    {
+        result[i++] = '-';
     }
 
     result[i] = '\0';
@@ -59,7 +55,7 @@ int is_number(char number[BUFFER_SIZE])
 {
     for (int i = 0; number[i] != '\0'; ++i)
     {
-        if (number[i] - '0' > 9 || number[i] - '0' < 0)
+        if ((number[i] - '0' > 9 || number[i] - '0' < 0) && number[i] != '-')
             return 0;
     }
     return 1;
