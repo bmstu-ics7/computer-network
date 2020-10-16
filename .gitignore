@@ -2,3 +2,6 @@
 
 *.o
 *.out
+
+## MacOS Files
+.DS_Store
