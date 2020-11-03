@@ -5,3 +5,6 @@
 
 ## MacOS Files
 .DS_Store
+
+## CMake build files
+**/build/**
