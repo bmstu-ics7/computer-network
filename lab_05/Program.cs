@@ -2,6 +2,7 @@
 using CommandLine;
 using System.Net;
 using System.Net.Mail;
+using System.Threading;
 
 namespace Mail
 {
@@ -25,10 +26,28 @@ namespace Mail
             Console.Write("Body: ");
             m.Body = Console.ReadLine();
 
+            Console.Write("Filename [no file]: ");
+            string filename = Console.ReadLine();
+
+            if (filename != "")
+            {
+                m.Attachments.Add(new Attachment(filename));
+            }
+
+            Console.WriteLine("Interval: ");
+            int interval = Convert.ToInt32(Console.ReadLine());
+
             SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587);
             smtp.Credentials = new NetworkCredential(opts.AddressSender, opts.Password);
             smtp.EnableSsl = true;
-            smtp.Send(m);
+
+            while (true)
+            {
+                smtp.Send(m);
+                Console.WriteLine("Message sended");
+                Thread.Sleep(interval);
+            }
+
         }
     }
 }
