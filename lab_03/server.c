@@ -146,7 +146,7 @@ void handle_connection(int client_socket) {
         FILE *file = fopen(request.filename, "r");
         if (file == NULL) {
             errno = 0;
-            printf("connection error: open file %s\n", buffer);
+            printf("connection error: open file %s\n", request.filename);
             sprintf(
                 all_content,
                 "HTTP/1.1 404 Not Found\r\n"
