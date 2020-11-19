@@ -15,6 +15,7 @@
 #define BUFSIZE 255
 #define MAX_LEN 4096
 #define THREAD_POOL_SIZE 4
+#define REQUESTSIZE 128
 
 typedef struct sockaddr SA;
 typedef struct sockaddr_in SA_IN;
@@ -22,11 +23,13 @@ typedef struct sockaddr_in SA_IN;
 struct request {
     char *method;
     char *filename;
+    char *username;
 };
 
 int server_socket;
 pthread_t thread_pool[THREAD_POOL_SIZE];
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
+pthread_mutex_t mutex_file = PTHREAD_MUTEX_INITIALIZER;
 queue_t *clients_queue;
 
 void check_error(const char *name_function);
@@ -110,6 +113,12 @@ struct request parse_request(char *request_message) {
     request.method = strtok(request_message, " ");
     request.filename = strtok(NULL, " ");
     memmove(request.filename, request.filename + 1, strlen(request.filename));
+
+    do {
+        request.username = strtok(NULL, " \n\r");
+    } while (strcmp(request.username, "User-Agent:") && request.username != NULL);
+    request.username = strtok(NULL, " \n\r");
+
     return request;
 }
 
@@ -127,20 +136,23 @@ void *thread_function(void *arg) {
 
 void handle_connection(int client_socket) {
     char buffer[BUFSIZE];
+    char request_buffer[BUFSIZE];
     char *content = calloc(MAX_LEN, 1);
     char *all_content = calloc(MAX_LEN, 1);
     char *not_found_msg = "<h1>404 Not Found</h1>\n";
     size_t message_size;
+    int code = 0;
 
     printf("\n===\n");
 
-    message_size = read(client_socket, buffer, BUFSIZE);
+    message_size = read(client_socket, request_buffer, BUFSIZE);
     check_error("read");
 
     buffer[message_size - 1] = 0;
-    printf("request: %s\n", buffer);
+    printf("request: %s\n", request_buffer);
 
-    struct request request = parse_request(buffer);
+    struct request request = parse_request(request_buffer);
+    printf("username: %s\n", request.username);
 
     if (strcmp(request.method, "GET") == 0) {
         FILE *file = fopen(request.filename, "r");
@@ -155,6 +167,7 @@ void handle_connection(int client_socket) {
                 "content-length: %lu\r\n\r\n"
                 "%s\n", strlen(not_found_msg), not_found_msg
             );
+            code = 404;
         } else {
             do {
                 message_size = fread(buffer, 1, BUFSIZE, file);
@@ -174,6 +187,7 @@ void handle_connection(int client_socket) {
                 "content-length: %lu\r\n\r\n"
                 "%s", strlen(content), content
             );
+            code = 200;
         }
     } else {
         sprintf(
@@ -184,10 +198,22 @@ void handle_connection(int client_socket) {
             "content-length: %lu\r\n\r\n"
             "%s\n", strlen(not_found_msg), not_found_msg
         );
+        code = 404;
     }
 
     write(client_socket, all_content, strlen(all_content));
     free(content);
     free(all_content);
+
+    pthread_mutex_lock(&mutex_file);
+    FILE *log = fopen("users.log", "a");
+    fprintf(log, "%s : %s (%d)\n",
+        request.username,
+        request.filename,
+        code
+    );
+    fclose(log);
+    pthread_mutex_unlock(&mutex_file);
+
     printf("closing connection\n");
 }
