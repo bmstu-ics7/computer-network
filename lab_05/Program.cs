@@ -8,8 +8,11 @@ namespace Mail
 {
     class Program
     {
+        static private SmtpClient smtp;
+
         static void Main(string[] args)
         {
+            Console.CancelKeyPress += new ConsoleCancelEventHandler(ExitHandler);
             CommandLine.Parser.Default.ParseArguments<Options>(args)
                 .WithParsed(RunProgram);
         }
@@ -37,7 +40,7 @@ namespace Mail
             Console.WriteLine("Interval: ");
             int interval = Convert.ToInt32(Console.ReadLine());
 
-            SmtpClient smtp = new SmtpClient("smtp.gmail.com", 587);
+            smtp = new SmtpClient("smtp.gmail.com", 587);
             smtp.Credentials = new NetworkCredential(opts.AddressSender, opts.Password);
             smtp.EnableSsl = true;
 
@@ -47,7 +50,13 @@ namespace Mail
                 Console.WriteLine("Message sended");
                 Thread.Sleep(interval);
             }
+        }
 
+        protected static void ExitHandler(object sender, ConsoleCancelEventArgs args)
+        {
+            smtp.Dispose();
+            Console.WriteLine("Smtp closed");
+            System.Environment.Exit(0);
         }
     }
 }
