@@ -6,6 +6,7 @@
 #include <netdb.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/types.h>
 
 #define COUNT_ARG_ERROR (-1)
 #define BUFSIZE 255
@@ -57,8 +58,9 @@ int main(int argc, char *argv[]) {
     send_buffer = malloc(HEADSIZE);
     sprintf(send_buffer,
         "GET /%s HTTP/1.1\r\n"
-        "Host: %s:%s\r\n\r\n",
-        buffer, argv[1], argv[2]
+        "Host: %s:%s\r\n"
+        "User-Agent: Client#%d\r\n\r\n",
+        buffer, argv[1], argv[2], getpid()
     );
 
     write(server_socket, send_buffer, strlen(send_buffer));
