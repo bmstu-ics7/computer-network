@@ -3,6 +3,12 @@
 *.o
 *.out
 
+## Logs files
+*.log
+
+## CCls cache
+**/.ccls-cache/**
+
 ## MacOS Files
 .DS_Store
 
