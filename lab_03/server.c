@@ -117,7 +117,7 @@ struct request parse_request(char *request_message) {
     do {
         request.username = strtok(NULL, " \n\r");
     } while (strcmp(request.username, "User-Agent:") && request.username != NULL);
-    request.username = strtok(NULL, " \n\r");
+    request.username = strtok(NULL, "\n\r");
 
     return request;
 }
